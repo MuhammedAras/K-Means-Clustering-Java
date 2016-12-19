@@ -24,31 +24,21 @@ public class KMeans {
             mode = MODE_CONTINUOUS; 
         } 
          
-        // create new KMeans object 
-        KMeans kmeans = new KMeans(); 
-        // call the function to actually start the clustering 
-        BufferedImage dstImage = kmeans.calculate(loadImage(src), 
-                                                    k,mode); 
-        // save the resulting image 
+        KMeans kmeans = new KMeans();  
+        BufferedImage dstImage = kmeans.calculate(loadImage(src),k,mode); 
         saveImage(dst, dstImage); 
     } 
      
     public KMeans() {    } 
      
-    public BufferedImage calculate(BufferedImage image,  
-                                            int k, int mode) { 
+    public BufferedImage calculate(BufferedImage image,int k, int mode) { 
         long start = System.currentTimeMillis(); 
         int w = image.getWidth(); 
         int h = image.getHeight(); 
-        // create clusters 
         clusters = createClusters(image,k); 
-        // create cluster lookup table 
         int[] lut = new int[w*h]; 
         Arrays.fill(lut, -1); 
-         
-        // at first loop all pixels will move their clusters 
         boolean pixelChangedCluster = true; 
-        // loop until all clusters are stable! 
         int loops = 0; 
         while (pixelChangedCluster) { 
             pixelChangedCluster = false; 
@@ -58,41 +48,32 @@ public class KMeans {
                     int pixel = image.getRGB(x, y); 
                     Cluster cluster = findMinimalCluster(pixel); 
                     if (lut[w*y+x]!=cluster.getId()) { 
-                        // cluster changed 
                         if (mode==MODE_CONTINUOUS) { 
                             if (lut[w*y+x]!=-1) { 
-                                // remove from possible previous  
-                                // cluster 
-                                clusters[lut[w*y+x]].removePixel( 
-                                                            pixel); 
+                                clusters[lut[w*y+x]].removePixel(pixel); 
                             } 
-                            // add pixel to cluster 
                             cluster.addPixel(pixel); 
                         } 
-                        // continue looping  
                         pixelChangedCluster = true; 
-                     
-                        // update lut 
+
                         lut[w*y+x] = cluster.getId(); 
                     } 
                 } 
             } 
             if (mode==MODE_ITERATIVE) { 
-                // update clusters 
                 for (int i=0;i<clusters.length;i++) { 
                     clusters[i].clear(); 
                 } 
                 for (int y=0;y<h;y++) { 
                     for (int x=0;x<w;x++) { 
-                        int clusterId = lut[w*y+x]; 
-                        // add pixels to cluster 
+                        int clusterId = lut[w*y+x];  
                         clusters[clusterId].addPixel(image.getRGB(x, y)); 
                     } 
                 } 
             } 
              
         } 
-        // create result image 
+
         BufferedImage result = new BufferedImage(w, h,  
                                     BufferedImage.TYPE_INT_RGB); 
         for (int y=0;y<h;y++) { 
